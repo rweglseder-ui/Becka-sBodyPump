@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Becka's Body Pump Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eceff3;--card:#fff;--ink:#1b2430;--mute:#66758a;--line:#d5dbe3;--plate:#c8372d;--steel:#2f3d4f}
+@media (prefers-color-scheme:dark){:root{--bg:#141a22;--card:#1d2631;--ink:#eef1f5;--mute:#94a3b6;--line:#2d3a49;--plate:#ee5a4f;--steel:#0f151c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 -apple-system,"Segoe UI",Roboto,sans-serif;padding-bottom:40px}
+header{background:var(--steel);color:#fff;padding:20px 18px 16px}
+h1{font:700 32px/1 "Barlow Condensed","Arial Narrow",sans-serif;margin:0}
+header p{margin:6px 0 0;color:#b9c4d2;font-size:14px}
+main{max-width:480px;margin:0 auto;padding:14px}
+.last{color:var(--mute);font-size:14px;margin:0 0 10px}
+.next{background:var(--card);border:2px solid var(--plate);border-radius:16px;padding:18px}
+.next small{color:var(--mute);font-size:13px}
+.next h2{font:700 46px/1 "Barlow Condensed","Arial Narrow",sans-serif;margin:4px 0 2px}
+.focus{font-weight:600}
+.cue{color:var(--mute);margin:4px 0 14px}
+.opts{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.opts button{padding:9px 12px;border:1px solid var(--line);border-radius:20px;background:var(--bg);color:var(--ink);font-size:14px}
+.opts button[aria-pressed=true]{background:var(--steel);border-color:var(--steel);color:#fff}
+button{font:inherit;cursor:pointer}
+.done{width:100%;padding:16px;border:0;border-radius:12px;background:var(--plate);color:#fff;font-weight:700;font-size:18px}
+.sub{display:flex;gap:8px;margin-top:10px}
+.sub button,.link{flex:1;padding:11px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-size:14px}
+.sub button:disabled{opacity:.4;cursor:default}
+.fb{display:none;margin:0 0 12px}
+.fb.show{display:block}
+.fb p{margin:0 0 6px;font-size:14px}
+.fb div{display:flex;gap:8px}
+.fb button,.gen{flex:1;padding:11px 6px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-size:14px}
+.gen{width:100%;margin-top:18px}
+h3{font:700 20px "Barlow Condensed","Arial Narrow",sans-serif;margin:22px 0 8px}
+.queue{display:flex;gap:6px;flex-wrap:wrap}
+.queue span{padding:6px 10px;border:1px solid var(--line);border-radius:20px;background:var(--card);font-size:13px}
+.queue span.cur{background:var(--plate);border-color:var(--plate);color:#fff}
+.pick{display:none;margin-top:10px}
+.pick.open{display:block}
+.pick p{margin:0 0 8px;font-size:14px;color:var(--mute)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid button{padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-weight:600}
+.hist{list-style:none;margin:0;padding:0}
+.hist li{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+.hist li span:last-child{color:var(--mute)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--plate);outline-offset:2px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Becka's Body Pump Plan</h1>
+  <p>Do the track below, tap Done, and the next one is ready.</p>
+</header>
+<main>
+  <p class="last" id="last"></p>
+  <div class="fb" id="fb"></div>
+  <section class="next" aria-live="polite">
+    <small>Up next</small>
+    <h2 id="name"></h2>
+    <div class="focus" id="focus"></div>
+    <div class="cue" id="cue"></div>
+    <div id="opts" class="opts"></div>
+    <button class="done" id="done">Done, show me the next one</button>
+    <div class="sub">
+      <button id="skip">Skip this one</button>
+      <button id="undo">Undo last</button>
+    </div>
+  </section>
+  <button class="link" style="width:100%;margin-top:10px" id="lost">Not sure where I left off?</button>
+  <div class="pick" id="pick">
+    <p>Tap the last track you remember finishing. I'll pick up right after it.</p>
+    <div class="grid" id="grid"></div>
+  </div>
+  <h3>Coming up</h3>
+  <div class="queue" id="queue"></div>
+  <h3>Recent</h3>
+  <ul class="hist" id="hist"></ul>
+  <button class="gen" id="gen">Text Ryan a note about the app</button>
+</main>
+<script>
+// Ryan: put the number to receive feedback texts here, like "+15551234567". Leave blank to let her pick the contact.
+const TEXT_TO="+14102923448";
+const T=[
+ ["Warm-up","Full body","March in place, big arm circles, hip circles. About 1 minute.",[],""],
+ ["Squats","Legs and glutes","Sit back, chest up, knees over toes. 15 reps.",["Bodyweight","Milk jug at chest","Laundry basket","Hug a kid"],"squat"],
+ ["Chest","Push-ups","Body in one line, lower your chest to the surface. 10-15 reps.",["Wall","Counter","Knees on floor","Full floor"],"push"],
+ ["Back","Rows","Hinge forward with a flat back, pull elbows past your ribs. 12-15 reps.",["Two milk jugs","Laundry basket","Backpack","Towel pull"],"row"],
+ ["Triceps","Dips","Hands behind you, bend elbows straight back. 10-15 reps.",["Sturdy chair","Couch edge","Counter"],"dip"],
+ ["Biceps","Curls","Elbows pinned to your ribs, no swinging. 12-15 curls.",["Milk jugs","Detergent jug","Backpack","Water bottles"],"curl"],
+ ["Lunges","Legs and glutes","Step back, drop the back knee straight down. 10-12 per leg.",["Bodyweight","Jug in each hand","Laundry basket","Hug a kid"],"lunge"],
+ ["Shoulders","Press and raise","Brace your core, press overhead or raise out to the sides. 12-15 reps.",["Two milk jugs","Laundry basket","Backpack","Bodyweight arm raises"],"press"],
+ ["Core","Floor work","Press your low back into the floor. Deadbugs or plank, about 45 seconds.",["Deadbugs","Plank","Side plank"],"core"],
+ ["Cool-down","Stretch","Slow breaths. Hold each stretch about 30 seconds.",[],""]
+];
+let S={pos:0,log:[],pk:{}};
+try{const r=localStorage.getItem("becka_bp3");if(r)S=Object.assign(S,JSON.parse(r))}catch(e){}
+const save=()=>{try{localStorage.setItem("becka_bp3",JSON.stringify(S))}catch(e){}};
+const $=id=>document.getElementById(id);
+const nx=i=>(i+1)%T.length;
+function ago(ts){
+  const m=Math.round((Date.now()-ts)/60000);
+  if(m<2)return"just now";if(m<60)return m+" min ago";
+  const h=Math.round(m/60);if(h<24)return h+" hr ago";
+  const d=Math.round(h/24);return d+(d===1?" day ago":" days ago");
+}
+function render(){
+  const t=T[S.pos],l=S.log[S.log.length-1];
+  $("name").textContent=t[0];$("focus").textContent=t[1];$("cue").textContent=t[2];
+  const cur=S.pk[t[0]]||t[3][0];
+  $("opts").innerHTML=t[3].map(o=>`<button data-o="${o}" aria-pressed="${o===cur}">${o}</button>`).join("");
+  $("last").textContent=l?"Last finished: "+T[l.i][0]+", "+ago(l.t):"Starting fresh. Begin with the warm-up.";
+  $("undo").disabled=!S.log.length;
+  $("queue").innerHTML=[0,1,2,3,4].map(k=>{const i=(S.pos+k)%T.length;return`<span class="${k?"":"cur"}">${T[i][0]}</span>`}).join("");
+  $("hist").innerHTML=S.log.length?S.log.slice(-6).reverse().map(e=>`<li><span>${T[e.i][0]}${e.w?" · "+e.w:""}</span><span>${ago(e.t)}</span></li>`).join(""):'<li><span>Nothing logged yet</span></li>';
+  $("grid").innerHTML=T.map((x,i)=>`<button data-i="${i}">${x[0]}</button>`).join("");
+}
+$("done").onclick=()=>{
+  const t=T[S.pos],w=t[3].length?(S.pk[t[0]]||t[3][0]):"";
+  S.log.push({i:S.pos,t:Date.now(),w:w});
+  if(S.log.length>200)S.log.shift();
+  S.pos=nx(S.pos);save();render();
+};
+$("skip").onclick=()=>{S.pos=nx(S.pos);save();render()};
+$("undo").onclick=()=>{const l=S.log.pop();if(l)S.pos=l.i;save();render()};
+$("opts").onclick=e=>{const b=e.target.closest("[data-o]");if(!b)return;S.pk[T[S.pos][0]]=b.dataset.o;save();render()};
+$("lost").onclick=()=>$("pick").classList.toggle("open");
+$("grid").onclick=e=>{
+  const b=e.target.closest("[data-i]");if(!b)return;
+  S.pos=nx(+b.dataset.i);$("pick").classList.remove("open");save();render();
+};
+
+function sms(msg){location.href="sms:"+TEXT_TO+"&body="+encodeURIComponent(msg)}
+function renderFb(){
+  const l=S.log[S.log.length-1],f=$("fb");
+  if(!l){f.className="fb";return}
+  f.className="fb show";
+  f.innerHTML=`<p>How was ${T[l.i][0].toLowerCase()}?</p><div><button data-f="This worked for me">👍 Worked</button><button data-f="I liked this">❤️ Liked it</button><button data-f="I didn't like this">👎 Didn't like</button></div>`;
+}
+$("fb").onclick=e=>{
+  const b=e.target.closest("[data-f]");if(!b)return;
+  const l=S.log[S.log.length-1];
+  sms("Body Pump: "+T[l.i][0]+(l.w?" ("+l.w+")":"")+". "+b.dataset.f+". ");
+};
+$("gen").onclick=()=>sms("Body Pump app: ");
+const _r=render;render=function(){_r();renderFb()};
+render();
+</script>
+</body>
+</html>
