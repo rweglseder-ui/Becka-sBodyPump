@@ -82,7 +82,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--plate);outline-
 </main>
 <script>
 // Ryan: put the number to receive feedback texts here, like "+15551234567". Leave blank to let her pick the contact.
-const TEXT_TO="+14102923448";
+const TEXT_TO="";
 const T=[
  ["Warm-up","Full body","March in place, big arm circles, hip circles. About 1 minute.",[],""],
  ["Squats","Legs and glutes","Sit back, chest up, knees over toes. 15 reps.",["Bodyweight","Milk jug at chest","Laundry basket","Hug a kid"],"squat"],
@@ -132,7 +132,7 @@ $("grid").onclick=e=>{
   S.pos=nx(+b.dataset.i);$("pick").classList.remove("open");save();render();
 };
 
-function sms(msg){location.href="sms:"+TEXT_TO+"&body="+encodeURIComponent(msg)}
+function sms(msg){location.href="sms:"+TEXT_TO+"?body="+encodeURIComponent(msg)}
 function renderFb(){
   const l=S.log[S.log.length-1],f=$("fb");
   if(!l){f.className="fb";return}
